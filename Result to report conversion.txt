@@ -1,0 +1,70 @@
+# ===== STEP 2: WORD REPORT (asks & downloads) =====
+from docx import Document
+from docx.shared import Inches
+from google.colab import files
+import os
+
+def create_results_dataframe_for_export(results):
+    # Same formatting used in Step 1
+    import pandas as pd
+    df = pd.DataFrame(results)[["symbol", "mse", "accuracy",
+                                "next_day_usd", "next_day_eur", "next_day_inr"]]
+    df_disp = df.copy()
+    df_disp["mse"] = df_disp["mse"].map(lambda x: f"{x:.4f}")
+    df_disp["accuracy"] = df_disp["accuracy"].map(lambda x: f"{x*100:.2f}%")
+    df_disp["next_day_usd"] = df_disp["next_day_usd"].map(lambda r: f"{r[0]:.2f} USD - {r[1]:.2f} USD")
+    df_disp["next_day_eur"] = df_disp["next_day_eur"].map(lambda r: f"{r[0]:.2f} EUR - {r[1]:.2f} EUR")
+    df_disp["next_day_inr"] = df_disp["next_day_inr"].map(lambda r: f"{r[0]:.2f} INR - {r[1]:.2f} INR")
+    return df_disp
+
+def generate_word_with_dataframe(results, output_filename="Stock_Report.docx"):
+    df = create_results_dataframe_for_export(results)
+    doc = Document()
+
+    # Title
+    doc.add_heading('Stock Prediction Report', level=1)
+
+    # Include individual graph images, one per paragraph
+    doc.add_paragraph("Stock Price and Daily Return Graphs:")
+    for result in results:
+        symbol = result["symbol"]
+        filename = f"{symbol}_stock_graph.png"
+        if os.path.exists(filename):
+            doc.add_picture(filename, width=Inches(6)) # Revert to original width
+        else:
+             doc.add_paragraph(f"(Graph for {symbol} not found; run Step 1 first to generate {filename})")
+
+    doc.add_paragraph("Note: Price ranges are printed with currency names (USD, EUR, INR).")
+
+    # Table (with borders via 'Table Grid' style)
+    table = doc.add_table(rows=1, cols=len(df.columns))
+    table.style = 'Table Grid'
+
+    # Header row
+    hdr_cells = table.rows[0].cells
+    for i, col in enumerate(df.columns):
+        hdr_cells[i].text = col
+
+    # Data rows
+    for _, row in df.iterrows():
+        row_cells = table.add_row().cells
+        for i, val in enumerate(row):
+            row_cells[i].text = str(val)
+
+    # Save file
+    doc.save(output_filename)
+    return output_filename
+
+def export_word_report(results):
+    choice = input("Do you want to download the Word report? (yes/no): ").strip().lower()
+    if choice == "yes":
+        print("Preparing Word report...")
+        filename = generate_word_with_dataframe(results)
+        print("Starting download...")
+        files.download(filename)   # Triggers browser download in Colab
+        print("Downloaded Word report.")
+    else:
+        print("Download skipped.")
+
+# Call it using the 'results' produced in Step 1:
+export_word_report(results)
