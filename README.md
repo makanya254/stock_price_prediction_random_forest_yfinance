@@ -27,19 +27,20 @@ This project predicts the next day's stock price range by first predicting the *
 
 ---
 
-### Target Variable (What We Predict)
--   **Next Day’s Daily Return:**
-    $$
-    \text{Daily Return} = \frac{\text{Adj Close}_t - \text{Adj Close}_{t-1}}{\text{Adj Close}_{t-1}}
-    $$
-The predicted return is then applied to the last Adjusted Close price to estimate the **next-day price range** in:
--   USD
--   EUR
--   INR
+### Target Variable & Final Output
+The model's primary goal is to predict the **Next Day’s Daily Return**, calculated as:
+$$
+\text{Daily Return} = \frac{\text{Adj Close}_t - \text{Adj Close}_{t-1}}{\text{Adj Close}_{t-1}}
+$$
+This predicted return is then used to generate two key outputs:
+
+1.  **Next-Day Price Range:** The estimated price range (high-low) for the next trading day, converted into **USD**, **EUR**, and **INR**.
+
+2.  **Formatted Word Report:** All results, including performance metrics (MSE, Accuracy), price predictions, and visualizations, are automatically compiled into a professional Microsoft Word (`.docx`) document for easy review and sharing.
 
 ---
 
-### Feature → Target Flow Diagram
+### Full Project Flow Diagram
 
 ```mermaid
 flowchart TD
@@ -49,3 +50,4 @@ flowchart TD
     D --> E["Random Forest Regressor"]
     E --> F["Predict Next-Day Daily Return"]
     F --> G["Convert to Next-Day Price Range in USD/EUR/INR"]
+    G --> H["Generate Formatted Word Report (.docx)"]
